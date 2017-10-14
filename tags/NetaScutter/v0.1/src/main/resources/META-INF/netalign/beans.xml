@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+	<bean id="PropertyPlaceholderConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>scutter.properties</value>				
+			</list>
+		</property>
+		<property name="properties">
+			<value>
+			scutter.pattern=
+			scutter.maxNumOfUrls = 100
+			scutter.corePoolSize = 1
+			scutter.maxPoolSize = 1
+			</value>
+		</property>
+	</bean>	
+	<bean id="scutter" class="com.netalign.netascutter.Scutter" scope="singleton">
+		<property name="fetchers">
+			<list>
+				<ref bean="httpFetcher" />
+			</list>
+		</property>
+		<property name="parsers">
+			<list>
+				<ref bean="siocParser" />
+				<ref bean="semanticRadarParser"/>
+			</list>
+		</property>
+		<property name="handlers">
+			<list>
+				<ref bean="restPersonHandler" />	
+				<ref bean="restPostHandler"/>
+				<ref bean="restContainerHandler"/>
+				<ref bean="urlHandler"/>								
+			</list>
+		</property>
+		<property name="corePoolSize" value="${scutter.corePoolSize}"/>
+		<property name="maxPoolSize" value="${scutter.maxPoolSize}"/>
+		<property name="maxNumOfUrls" value="${scutter.maxNumOfUrls}" />
+		<property name="pattern" value="${scutter.pattern}" />
+	</bean>
+	
+	<bean id="httpFetcher" class="com.netalign.netascutter.fetcher.HttpFetcher" scope="singleton">
+		<property name="agentName" value="${httpFetcher.agentName}"/>
+	</bean>
+	<bean id="siocParser" class="com.netalign.netascutter.parser.SiocParser" scope="singleton"/>	
+	<bean id="semanticRadarParser" class="com.netalign.netascutter.parser.SemanticRadarParser" scope="singleton"/>
+	<bean id="restPersonHandler" class="com.netalign.netascutter.handler.RESTPersonHandler" scope="singleton">
+		<property name="listener" ref="scutter" />
+		<property name="restCon" ref="drupalRestConnection" />
+		<property name="converter" ref="drupalMapper" />
+	</bean>
+	<bean id="restPostHandler" class="com.netalign.netascutter.handler.RESTPostHandler" scope="singleton">
+		<property name="listener" ref="scutter" />
+		<property name="restCon" ref="drupalRestConnection" />
+		<property name="converter" ref="drupalMapper" />
+	</bean>
+	<bean id="restContainerHandler" class="com.netalign.netascutter.handler.RESTContainerHandler" scope="singleton">
+		<property name="listener" ref="scutter" />
+		<property name="restCon" ref="drupalRestConnection" />
+		<property name="converter" ref="drupalMapper" />
+	</bean>	
+	<bean id="urlHandler" class="com.netalign.netascutter.handler.UrlHandler" scope="singleton">
+		<property name="listener" ref="scutter" />
+	</bean>	
+	<bean id="drupalRestConnection" class="com.netalign.netascutter.handler.DrupalRESTConnection"
+		scope="prototype">
+		<property name="httpClient" ref="http" />
+		<property name="host" value="${restConnection.host}" />
+	</bean>
+	<bean id="http" class="com.netalign.netascutter.utils.HttpCommons"
+		scope="singleton"></bean>
+	<bean id="drupalMapper" class="com.netalign.netascutter.handler.DrupalMapper"
+		scope="singleton"></bean>
+</beans>

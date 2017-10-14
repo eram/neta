@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+    
+    <bean id="PropertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>scutter.properties</value>
+            </list>
+        </property>
+        <property name="properties">
+        	<value>scutter.domain=</value>
+        </property>        
+    </bean>
+    <bean id="scutter" class="com.netalign.netascutter.Scutter" >
+        <lookup-method name="getRetriever" bean="siocRetriever"/>
+        <property name="maxNumOfUrls" value="${scutter.maxNumOfUrls}"/>
+        <property name="domain" value="${scutter.domain}"/>
+    </bean>
+    <bean id="restPersonAggregator" class="com.netalign.netascutter.RESTPersonAggregator">        
+        <property name="listener" ref="scutter"/>
+        <property name="restCon" ref="drupalRestConnection"/>
+        <property name="converter" ref="drupalMapper"/>
+    </bean>
+    <bean id="restPostAggregator" class="com.netalign.netascutter.RESTPostAggregator">        
+        <property name="listener" ref="scutter"/>
+        <property name="restCon" ref="drupalRestConnection"/>
+        <property name="converter" ref="drupalMapper"/>
+    </bean>
+    <bean id="forumAggregator" class="com.netalign.netascutter.ForumAggregator">        
+        <property name="listener" ref="scutter"/>
+    </bean>    
+    <bean id="siocRetriever" class="com.netalign.netascutter.SiocRetriever" scope="prototype" >
+        <property name="aggregators">
+            <list>     
+            	<ref bean="restPostAggregator"/>           
+                <ref bean="restPersonAggregator"/>  
+                <ref bean="forumAggregator"/>                    
+            </list>
+        </property>
+    </bean>
+    <bean id="drupalRestConnection" class="com.netalign.netascutter.DrupalRESTConnection"  scope="prototype" >
+        <property name="httpClient" ref="httpMan"/>
+        <property name="host" value="${restConnection.host}"/>
+    </bean>
+    <bean id="httpMan" class="com.netalign.netascutter.utils.HttpMan"  scope="prototype"></bean>
+    <bean id="drupalMapper" class="com.netalign.netascutter.DrupalMapper" scope="singleton"></bean>
+</beans>
